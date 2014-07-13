@@ -16,9 +16,9 @@ import org.apache.log4j.PropertyConfigurator;
 
 import java.net.InetSocketAddress;
 
-public class JdbServer {
+public class Server {
 
-    private final static Logger logger = Logger.getLogger(JdbServer.class);
+    private final static Logger logger = Logger.getLogger(Server.class);
 
     private static final int PORT = Integer.parseInt(System.getProperty("port", "11000"));
     private static final boolean SSL = System.getProperty("ssl") != null;
@@ -32,11 +32,11 @@ public class JdbServer {
     private int port;
     private String host;
 
-    public JdbServer() {
+    public Server() {
         this(null, PORT);
     }
 
-    public JdbServer(String host, int port) {
+    public Server(String host, int port) {
         this.port = port;
         this.host = host;
         this.jobQueue = JobQueue.getInstance();
@@ -105,7 +105,7 @@ public class JdbServer {
 
     public static void main(String[] argv) {
         PropertyConfigurator.configure(System.getProperty("user.dir") + "/log4j.properties");
-        JdbServer server = new JdbServer();
+        Server server = new Server();
         server.listen();
     }
 }
