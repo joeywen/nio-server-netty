@@ -14,41 +14,41 @@ import java.util.List;
 public class MessageDecoder extends ByteToMessageDecoder {
     private final static Logger logger = Logger.getLogger(MessageDecoder.class);
 
-    private Protocol proto_ = null;
-    private int lenToRead_ = 0;
+    private Protocol protocol = null;
+    private int lenToRead = 0;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception
     {
-        if (proto_ == null) {
+        if (protocol == null) {
             if (in.readableBytes() < 4) {
                 return;
             }
 
-            proto_ = new Protocol();
-            proto_.len = Integer.reverseBytes(in.readInt());
-            if ((proto_.len < Protocol.PROTO_MIN_LEN) || (proto_.len > Protocol.PROTO_MAX_LEN)) {
-                throw new InvalidProtoException("ProtoLen Must >= 18B && <= 1M: " + proto_.len);
+            protocol = new Protocol();
+            protocol.len = Integer.reverseBytes(in.readInt());
+            if ((protocol.len < Protocol.PROTO_MIN_LEN) || (protocol.len > Protocol.PROTO_MAX_LEN)) {
+                throw new InvalidProtoException("ProtoLen Must >= 18B && <= 1M: " + protocol.len);
             }
-            lenToRead_ = proto_.len - 4;
+            lenToRead = protocol.len - 4;
         }
 
-        if (in.readableBytes() >= lenToRead_) {
-            proto_.seq = Integer.reverseBytes(in.readInt());
-            proto_.hash = Integer.reverseBytes(in.readInt());
-            proto_.cmd = (Integer.reverseBytes(in.readUnsignedShort()) >>> 16);
-            proto_.ret = Short.reverseBytes(in.readShort());
-            proto_.hlen = Short.reverseBytes(in.readShort());
+        if (in.readableBytes() >= lenToRead) {
+            protocol.seq = Integer.reverseBytes(in.readInt());
+            protocol.hash = Integer.reverseBytes(in.readInt());
+            protocol.cmd = (Integer.reverseBytes(in.readUnsignedShort()) >>> 16);
+            protocol.ret = Short.reverseBytes(in.readShort());
+            protocol.hlen = Short.reverseBytes(in.readShort());
 
-            int bodyLen = proto_.len - Protocol.PROTO_MIN_LEN;
+            int bodyLen = protocol.len - Protocol.PROTO_MIN_LEN;
             if (bodyLen > 0) {
-                proto_.data = new byte[bodyLen];
-                in.readBytes(proto_.data);
+                protocol.data = new byte[bodyLen];
+                in.readBytes(protocol.data);
             }
-            out.add(proto_);
+            out.add(protocol);
 
-            proto_ = null;
-            lenToRead_ = 0;
+            protocol = null;
+            lenToRead = 0;
         }
     }
 
@@ -57,8 +57,8 @@ public class MessageDecoder extends ByteToMessageDecoder {
     {
         logger.error(cause.getMessage(), cause);
 
-        proto_ = null;
-        lenToRead_ = 0;
+        protocol = null;
+        lenToRead = 0;
         ctx.close();
     }
 
